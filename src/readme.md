@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 ## 其他准备
 
-首先，克隆仓库并cd到.test/workflow分支：
+首先，克隆仓库并switch到.test/workflow分支：
 
 ```bash
 # 克隆仓库
