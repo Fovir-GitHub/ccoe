@@ -32,7 +32,7 @@ def normalize_country(country: str) -> str:
     if (
         not country
         or country.strip() == ""
-        or country.strip().lower in {"nan", "none"}
+        or country.strip().lower() in {"nan", "none"}
         or len(country.strip()) != 2
         or pycountry.countries.get(alpha_2=country.upper()) is None
     ):
