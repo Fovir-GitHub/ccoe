@@ -3,7 +3,7 @@ import tempfile
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda
@@ -14,8 +14,10 @@ from src.utils.xlsx_read import read_excel
 from src.tools.embedding_tool import generate_embedding_from_excel
 
 # get API key
+
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+#OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+HF_API_KEY = os.getenv("HF_API_KEY")
 
 # paths to exceel (dummy data)
 current_path = Path(__file__).resolve() # D:codeC/ccoe/src/workflow/workflow.py
@@ -23,15 +25,16 @@ project_root = current_path.parent.parent.parent # D:codeC/ccoe
 excel_path = project_root / "data" / "dummy.xlsx" # D:codeC/ccoe/data/dummy.xlsx
 
 # set up llm with tool binding
-llm = ChatOpenAI(model="gpt-oss-20b", temperature=0, openai_api_key=OPENAI_API_KEY)
+llm = ChatOllama(model="Qwen3.5:4b", temperature=0, base_url="http://localhost:11434")
 llm_with_tools = llm.bind_tools([generate_embedding_from_excel])
 
 
 # 1. Normalize
 def normalize_and_stage(input_path: str) -> dict:
     df = read_excel(input_path)
+    df.columns = df.columns.str.strip() # delete the space
     df = normalization(df)
-
+    
     # store data temporarily so the @tool can read it by path
     tmp_xlsx = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
     tmp_parquet = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
