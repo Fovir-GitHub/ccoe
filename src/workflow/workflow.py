@@ -84,12 +84,22 @@ prompt = ChatPromptTemplate.from_messages([
     (
         "system",
         """
-You are a data deduplication expert.
-Your task is to detect accounts that likely belong to the same person and combine them according to the embeeddings.
-Return a CSV table.
+You are an expert Deduplication Engine. Your goal is to identify redundant records within a dataset that likely belong to the same individual.
+
+### OPERATIONAL PIPELINE:
+- 1. Vector Representation: Utilize the provided 'generate_embedding_from_excel' tool to generate embeddings for the normalized fields.
+- 2. Similarity Analysis: Calculate the Cosine Similarity between record embeddings.
+- 3. Decision Logic: Rows with high similarity scores across multiple attributes should be flagged as duplicates.
+
 """,
     ),
-    ("human", "Here are database records:{data}Find duplicates."),
+    (
+        "human", 
+        """
+The following database records have been normalized from an Excel file:{data}
+Please process these records through the vectorization tool. Identify all potential duplicates and output the final deduplicated results in a CSV format.
+"""
+),
 ])
 
 output_parser = StrOutputParser()
