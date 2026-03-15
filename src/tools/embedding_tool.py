@@ -1,6 +1,6 @@
 from langchain.tools import tool
 
-from src.services.embedding_service import build_embeddings
+from src.services.build_embeddings import build_embeddings
 
 @tool
 def generate_embedding_from_excel(input_path: str, output_path: str):
