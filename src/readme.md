@@ -3,6 +3,13 @@
 电脑在抽烟！帮帮我们！
 
 ---
+## What's different in .test/workflow
+- 1. Fix the bug in workflow: "Country cannot be found." by using str.strip() to delete space.
+
+- 2. Find an error in .normalization/country.py: "lower has no ().", which is a call to the function, not the value returned by the function, can not be {nan/none}.
+
+- 3. All the normalization steps can have outputs(error/warning), but the program runs so slow when loading embeddings.
+---
 
 ## 前置条件
 
