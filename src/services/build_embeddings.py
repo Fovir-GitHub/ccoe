@@ -10,7 +10,7 @@ def build_embeddings(input_path: str, output_path: str, generator: Optional[Embe
 
     :param input_path: Path to the input Excel file (.xlsx)
     :param output_path: Path where the output Parquet file with embeddings will be saved
-    :param generator:
+    :param generator: Transfer texts list into embeddings
     :return: The path to the saved Parquet file
     """
 
