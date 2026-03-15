@@ -15,15 +15,15 @@ from src.tools.embedding_tool import generate_embedding_from_excel
 
 # get API key
 load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # paths to exceel (dummy data)
-current_path = Path(__file__).resolve()
-project_root = current_path.parent.parent
-excel_path = project_root / "data" / "dummy.xlsx"
+current_path = Path(__file__).resolve() # D:codeC/ccoe/src/workflow/workflow.py
+project_root = current_path.parent.parent.parent # D:codeC/ccoe
+excel_path = project_root / "data" / "dummy.xlsx" # D:codeC/ccoe/data/dummy.xlsx
 
 # set up llm with tool binding
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
+llm = ChatOpenAI(model="gpt-oss-20b", temperature=0, openai_api_key=OPENAI_API_KEY)
 llm_with_tools = llm.bind_tools([generate_embedding_from_excel])
 
 
