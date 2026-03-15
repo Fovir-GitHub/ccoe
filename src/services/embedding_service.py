@@ -1,38 +1,57 @@
-import os
+import torch
+from transformers import AutoTokenizer, AutoModel
 from typing import List
-
-import requests
-from dotenv import load_dotenv
+from tqdm import tqdm
 
 from src.services.text_builder import row_to_text
 from src.utils.xlsx_read import read_excel
 
-load_dotenv()
-HF_API_KEY = os.getenv("HF_API_KEY")
-
 MODEL_NAME = "nvidia/llama-embed-nemotron-8b"
-API_URL = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{MODEL_NAME}"
 
-def generate_embeddings(texts: List[str], batch_size=16):
-    """
-    Call Hugging Face embedding API to generate embeddings
+# Initialize tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_NAME,
+    trust_remote_code=True
+)
 
-    :param batch_size: batch size for API calls, default is 16
-    :param texts: list of strings to generate embeddings for
-    :return: list of strings to generate embeddings for
+model = AutoModel.from_pretrained(
+    MODEL_NAME,
+    trust_remote_code=True,
+    torch_dtype=torch.float16, # use half precision to reduce memory
+    device_map="auto"
+).eval()
+
+device = next(model.parameters()).device # get model device
+
+def generate_embeddings(texts: List[str], batch_size=16) -> List[List[float]]:
     """
-    headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+    Generate embeddings locally using transformers
+
+    :param texts To generate a list of texts for vectors.
+    :param batch_size: The batch size of the model is entered each time, with a default value of 16.
+    :return: The list of embeddings (float) corresponding to each text.
+    """
+
     embeddings = []
 
-    for i in range(0, len(texts), batch_size): # batch response
-        batch = texts[i:i+batch_size]
-        response = requests.post(API_URL, headers=headers, json={"inputs": batch})
+    for i in tqdm(range(0, len(texts), batch_size), desc="Gnerating embeddings"):
+        batch = texts[i:i + batch_size]
 
-        if response.status_code != 200:
-            raise ValueError(f"[!] API call failed: {response.status_code}, {response.text}")
+        inputs = tokenizer(
+            batch,
+            padding=True,
+            truncation=True,
+            return_tensors="pt"
+        ).to(model.device)
 
-        batch_emb = response.json()
-        embeddings.extend(emb[0] for emb in batch_emb) # flatten
+        # run model without gradient computation
+        with torch.no_grad():
+            outputs = model(**inputs)
+
+        # mean pooling of last hidden states to get sentence embeddings
+        batch_embeddings = outputs.last_hidden_state.mean(dim=1)
+
+        embeddings.extend(batch_embeddings.cpu().tolist())
 
     return embeddings
 
@@ -51,4 +70,5 @@ def build_embeddings(input_path: str, output_path: str) -> str:
     df["embedding"] = embeddings
     df.to_parquet(output_path, index=False) # save as parquet without index
 
-    return output_path
+    print(f"Saved embeddings to {output_path}")
+    return str(output_path)

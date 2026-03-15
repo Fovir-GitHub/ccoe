@@ -19,3 +19,7 @@ python-dotenv==1.2.2
 
 # Optional: OpenAI SDK
 # openai==1.0
+scikit-learn~=1.8.0
+torch~=2.10.0
+transformers~=5.3.0
+tqdm~=4.67.3
