@@ -2,7 +2,8 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 from typing import List
 from tqdm import tqdm
-from src.config.model_config import MODEL_CONFIG
+from src.config import settings
+
 
 class EmbeddingGenerator:
     """
@@ -19,7 +20,7 @@ class EmbeddingGenerator:
         device (torch.device): Device where the model resides.
     """
 
-    def __init__(self, config=None):
+    def __init__(self):
         """
         Initialize the embedding generator.
 
@@ -28,11 +29,10 @@ class EmbeddingGenerator:
         config: Custom configuration dictionary.
                 Defaults to MODEL_CONFIG["embedding_model"].
         """
-        self.config = config or MODEL_CONFIG["embedding_model"]
-        self.backend = self.config.get("backend", "huggingface") # alternate ["huggingface", "ollama"]
-        self.model_name = self.config.get("model_name")
-        self.dtype = getattr(torch, self.config.get("dtype", "float32"))
-        self.device_map = self.config.get("device", "auto")
+        self.backend = settings.embedding.backend
+        self.model_name = settings.embedding.model_name
+        self.dtype = settings.embedding.dtype
+        self.device_map = settings.embedding.device
 
         if self.backend == "huggingface":
             self._init_hf_model()
@@ -50,13 +50,13 @@ class EmbeddingGenerator:
         """
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name,
-            trust_remote_code=self.config.get("trust_remote_code", False)
+            trust_remote_code=settings.embedding.trust_remote_code,
         )
         self.model = AutoModel.from_pretrained(
             self.model_name,
-            trust_remote_code=self.config.get("trust_remote_code", False),
+            trust_remote_code=settings.embedding.trust_remote_code,
             torch_dtype=self.dtype,
-            device_map=self.device_map
+            device_map=self.device_map,
         ).eval()
         self.device = next(self.model.parameters()).device
 
@@ -70,7 +70,6 @@ class EmbeddingGenerator:
             import ollama
         except ImportError:
             raise ImportError("Please install Ollama SDK: pip install ollama")
-
 
         self.ollama = ollama
         self.device = "cpu"
@@ -87,14 +86,11 @@ class EmbeddingGenerator:
         embeddings = []
 
         for i in tqdm(range(0, len(texts), batch_size), desc="Generating embeddings"):
-            batch = texts[i:i + batch_size]
+            batch = texts[i : i + batch_size]
 
             if self.backend == "huggingface":
                 inputs = self.tokenizer(
-                    batch,
-                    padding=True,
-                    truncation=True,
-                    return_tensors="pt"
+                    batch, padding=True, truncation=True, return_tensors="pt"
                 ).to(self.device)
 
                 # run model without gradient computation
@@ -107,11 +103,12 @@ class EmbeddingGenerator:
 
             elif self.backend == "ollama":
                 if not hasattr(self, "ollama"):
-                    raise RuntimeError("[!] Ollama not initialized. Call _init_ollama_model first.")
+                    raise RuntimeError(
+                        "[!] Ollama not initialized. Call _init_ollama_model first."
+                    )
 
                 response = self.ollama.embed(
-                    model=self.model_name,
-                    input=batch # list[str]
+                    model=self.model_name, input=batch  # list[str]
                 )
 
                 batch_embeddings = response.get("embeddings", [])
