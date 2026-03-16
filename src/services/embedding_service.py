@@ -3,7 +3,7 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 from typing import List
 from tqdm import tqdm
-from config import settings
+from src.config import settings
 
 
 class EmbeddingGenerator:
