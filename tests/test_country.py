@@ -1,5 +1,5 @@
 import unittest
-from src.normalization.country import normalize_country
+from src.ccoe_ai.normalization.country import normalize_country
 
 
 class TestNormalizeCountry(unittest.TestCase):

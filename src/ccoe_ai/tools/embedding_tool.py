@@ -1,6 +1,7 @@
 from langchain.tools import tool
 
-from src.services.build_embeddings import build_embeddings
+from src.ccoe_ai.services.build_embeddings import build_embeddings
+
 
 @tool
 def generate_embedding_from_excel(input_path: str, output_path: str, topk: int = 0):
@@ -12,3 +13,4 @@ def generate_embedding_from_excel(input_path: str, output_path: str, topk: int =
     :return: The path to the saved embedding file.
     """
     return build_embeddings(input_path, output_path, topk=topk)
+

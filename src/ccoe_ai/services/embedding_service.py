@@ -3,7 +3,7 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 from typing import List
 from tqdm import tqdm
-from src.config import settings
+from src.ccoe_ai.config import settings
 
 
 class EmbeddingGenerator:

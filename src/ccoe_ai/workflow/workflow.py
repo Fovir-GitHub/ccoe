@@ -8,9 +8,9 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda
 from langchain_core.messages import HumanMessage
 
-from src.normalization import normalization
-from src.utils import read_xlsx
-from src.tools.embedding_tool import generate_embedding_from_excel
+from src.ccoe_ai.normalization import normalization
+from src.ccoe_ai.utils import read_xlsx
+from src.ccoe_ai.tools.embedding_tool import generate_embedding_from_excel
 
 # get API key
 

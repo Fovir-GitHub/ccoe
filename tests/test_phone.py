@@ -1,5 +1,5 @@
 import unittest
-from src.normalization.phone import normalize_phone
+from src.ccoe_ai.normalization.phone import normalize_phone
 
 
 class TestNormalizePhone(unittest.TestCase):

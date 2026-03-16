@@ -1,9 +1,9 @@
 from typing import Optional
 
-from src.utils import read_xlsx
-from src.services.text_builder import row_to_text
-from src.services.embedding_service import EmbeddingGenerator
-from src.services.similarity import topk_similarity
+from src.ccoe_ai.utils import read_xlsx
+from src.ccoe_ai.services.text_builder import row_to_text
+from src.ccoe_ai.services.embedding_service import EmbeddingGenerator
+from src.ccoe_ai.services.similarity import topk_similarity
 
 
 def build_embeddings(
