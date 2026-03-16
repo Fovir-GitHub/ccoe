@@ -13,3 +13,4 @@ def row_to_text(row) -> str:
     IT Background: {row.get('IT/Cybersecurity bckgrd (Yes/No)', '')}
     Experience: {row.get('IT/Cybersecurity work exp (yrs)', '')}
     """
+
