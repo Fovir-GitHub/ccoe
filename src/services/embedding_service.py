@@ -2,73 +2,119 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 from typing import List
 from tqdm import tqdm
+from src.config.model_config import MODEL_CONFIG
 
-from src.services.text_builder import row_to_text
-from src.utils.xlsx_read import read_excel
-
-MODEL_NAME = "nvidia/llama-embed-nemotron-8b"
-
-# Initialize tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_NAME,
-    trust_remote_code=True
-)
-
-model = AutoModel.from_pretrained(
-    MODEL_NAME,
-    trust_remote_code=True,
-    torch_dtype=torch.float16, # use half precision to reduce memory
-    device_map="auto"
-).eval()
-
-device = next(model.parameters()).device # get model device
-
-def generate_embeddings(texts: List[str], batch_size=16) -> List[List[float]]:
+class EmbeddingGenerator:
     """
-    Generate embeddings locally using transformers
+    A class to generate text embeddings using different backends.
 
-    :param texts To generate a list of texts for vectors.
-    :param batch_size: The batch size of the model is entered each time, with a default value of 16.
-    :return: The list of embeddings (float) corresponding to each text.
+    Attributes:
+        config (dict): Model configuration dictionary.
+        backend (str): Model backend, e.g., "huggingface" or "ollama".
+        model_name (str): Name of the model to load.
+        dtype (torch.dtype): Data type for model weights.
+        device_map (str): Device mapping for model loading.
+        tokenizer (AutoTokenizer): Tokenizer instance (HuggingFace only).
+        model (AutoModel): Model instance.
+        device (torch.device): Device where the model resides.
     """
 
-    embeddings = []
+    def __init__(self, config=None):
+        """
+        Initialize the embedding generator.
 
-    for i in tqdm(range(0, len(texts), batch_size), desc="Gnerating embeddings"):
-        batch = texts[i:i + batch_size]
+        Parameters
+        ----------
+        config: Custom configuration dictionary.
+                Defaults to MODEL_CONFIG["embedding_model"].
+        """
+        self.config = config or MODEL_CONFIG["embedding_model"]
+        self.backend = self.config.get("backend", "huggingface") # alternate ["huggingface", "ollama"]
+        self.model_name = self.config.get("model_name")
+        self.dtype = getattr(torch, self.config.get("dtype", "float32"))
+        self.device_map = self.config.get("device", "auto")
 
-        inputs = tokenizer(
-            batch,
-            padding=True,
-            truncation=True,
-            return_tensors="pt"
-        ).to(model.device)
+        if self.backend == "huggingface":
+            self._init_hf_model()
+        elif self.backend == "ollama":
+            self._init_ollama_model()
+        else:
+            raise ValueError(f"[!] Unsupported backend: {self.backend}")
 
-        # run model without gradient computation
-        with torch.no_grad():
-            outputs = model(**inputs)
+    def _init_hf_model(self):
+        """
+        Initialize HuggingFace tokenizer and model.
 
-        # mean pooling of last hidden states to get sentence embeddings
-        batch_embeddings = outputs.last_hidden_state.mean(dim=1)
+        Loads the tokenizer and model from the HuggingFace hub with specified
+        dtype and device mapping, and sets the model to evaluation mode.
+        """
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name,
+            trust_remote_code=self.config.get("trust_remote_code", False)
+        )
+        self.model = AutoModel.from_pretrained(
+            self.model_name,
+            trust_remote_code=self.config.get("trust_remote_code", False),
+            torch_dtype=self.dtype,
+            device_map=self.device_map
+        ).eval()
+        self.device = next(self.model.parameters()).device
 
-        embeddings.extend(batch_embeddings.cpu().tolist())
+    def _init_ollama_model(self):
+        """
+        Initialize Ollama model backend for local inference.
 
-    return embeddings
+        Loads the Ollama model from local path and sets device.
+        """
+        try:
+            import ollama
+        except ImportError:
+            raise ImportError("Please install Ollama SDK: pip install ollama")
 
-def build_embeddings(input_path: str, output_path: str) -> str:
-    """
-    Generate embeddings from an Excel (.xlsx) file and save them to a Parquet file.
 
-    :param input_path: Path to the input Excel file (.xlsx)
-    :param output_path: Path where the output Parquet file with embeddings will be saved
-    :return: The path to the saved Parquet file
-    """
+        self.ollama = ollama
+        self.device = "cpu"
 
-    df = read_excel(input_path) # read data
-    texts = df.apply(row_to_text, axis=1).tolist() # transfer to texts
-    embeddings = generate_embeddings(texts) # generate embedding
-    df["embedding"] = embeddings
-    df.to_parquet(output_path, index=False) # save as parquet without index
+    def generate_embeddings(self, texts: List[str], batch_size=16) -> List[List[float]]:
+        """
+        Generate embeddings locally using transformers
 
-    print(f"Saved embeddings to {output_path}")
-    return str(output_path)
+        :param texts: To generate a list of texts for vectors.
+        :param batch_size: The batch size of the model is entered each time, with a default value of 16.
+        :return: The list of embeddings (float) corresponding to each text.
+        """
+
+        embeddings = []
+
+        for i in tqdm(range(0, len(texts), batch_size), desc="Generating embeddings"):
+            batch = texts[i:i + batch_size]
+
+            if self.backend == "huggingface":
+                inputs = self.tokenizer(
+                    batch,
+                    padding=True,
+                    truncation=True,
+                    return_tensors="pt"
+                ).to(self.device)
+
+                # run model without gradient computation
+                with torch.no_grad():
+                    outputs = self.model(**inputs)
+
+                # mean pooling of last hidden states to get sentence embeddings
+                batch_embeddings = outputs.last_hidden_state.mean(dim=1)
+                embeddings.extend(batch_embeddings.cpu().tolist())
+
+            elif self.backend == "ollama":
+                if not hasattr(self, "ollama"):
+                    raise RuntimeError("[!] Ollama not initialized. Call _init_ollama_model first.")
+
+                response = self.ollama.embed(
+                    model=self.model_name,
+                    input=batch # list[str]
+                )
+
+                batch_embeddings = response.get("embeddings", [])
+                embeddings.extend(batch_embeddings)
+
+        return embeddings
