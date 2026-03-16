@@ -7,6 +7,7 @@ def row_to_text(row) -> str:
     Country: {row.get('Country', '')}
     Phone: {row.get('Phone', '')}
     Course: {row.get('Course', '')}
+    Gender: {row.get('Gender', '')}
     Sector: {row.get('Sector', '')}
     Supervisor: {row.get("Supervisor's Name", '')}
     Supervisor Email: {row.get("Supervisor's Email", '')}
