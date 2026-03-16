@@ -1,22 +1,27 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-
-def topk_similarity(query_embedding, embeddings, k=5):
+def filter_similar(embeddings, threshold=0.9):
     """
-    Compute the top-k most similar embeddings to a query embedding using cosine similarity.
+    Remove embeddings that are too similar to each other based on cosine similarity.
 
-    :param query_embedding: The embedding vector of the query, where d is the embedding dimension.
-    :param embeddings: A 2D array containing n embeddings to compare against the query.
-    :param k: The number of top similar embeddings to return.
+    :param embeddings: 2D array of shape (n, d), n embeddings of dimension d.
+    :param threshold: Cosine similarity threshold above which embeddings are considered duplicates.
 
-    :return: tuple (topk_idx, topk_sims)
-        topk_idx: Indices of the top-k most similar embeddings in descending similarity order.
-        topk_sims: Cosine similarity scores corresponding to the top-k indices.
+    :return: indices of embeddings to keep (unique ones)
     """
-    sims = cosine_similarity([query_embedding], embeddings)[0]
+    n = embeddings.shape[0]
+    keep_mask = np.ones(n, dtype=bool)
 
-    topk_idx = np.argsort(sims)[-k:][::-1]
+    # Compute full similarity matrix
+    sims = cosine_similarity(embeddings)
 
-    return topk_idx, sims[topk_idx]
+    for i in range(n):
+        if not keep_mask[i]:
+            continue
+        # Mask out self-comparison
+        for j in range(i + 1, n):
+            if sims[i, j] >= threshold:
+                keep_mask[j] = False  # Mark duplicates as False
 
+    return np.where(keep_mask)[0]
