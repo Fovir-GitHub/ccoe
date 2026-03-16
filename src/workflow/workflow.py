@@ -18,8 +18,8 @@ load_dotenv()
 #OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # paths to exceel (dummy data)
-directory = os.path.dirname(__file__)
-excel_path = os.path.join(directory, 'dummy.xlsx')
+directory = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+excel_path = os.path.join(directory, 'data\\dummy.xlsx')
 
 
 # set up llm with tool binding
@@ -31,6 +31,7 @@ llm_with_tools = llm.bind_tools([generate_embedding_from_excel])
 def normalize_and_stage(input_path: str) -> dict:
     df = read_excel(input_path)
     df.columns = df.columns.str.strip() # delete the space
+    df = df.drop(columns=['NO', 'No','Reg Date','Exception']) # drop the columns that are not needed for deduplication
     df = normalization(df)
     
     # store data temporarily so the @tool can read it by path
