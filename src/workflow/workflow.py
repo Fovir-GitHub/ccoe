@@ -1,7 +1,6 @@
 import os
 import tempfile
 import pandas as pd
-from pathlib import Path
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
@@ -17,12 +16,11 @@ from src.tools.embedding_tool import generate_embedding_from_excel
 
 load_dotenv()
 #OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-HF_API_KEY = os.getenv("HF_API_KEY")
 
 # paths to exceel (dummy data)
-current_path = Path(__file__).resolve() # D:codeC/ccoe/src/workflow/workflow.py
-project_root = current_path.parent.parent.parent # D:codeC/ccoe
-excel_path = project_root / "data" / "dummy.xlsx" # D:codeC/ccoe/data/dummy.xlsx
+directory = os.path.dirname(__file__)
+excel_path = os.path.join(directory, 'dummy.xlsx')
+
 
 # set up llm with tool binding
 llm = ChatOllama(model="Qwen3.5:4b", temperature=0, base_url="http://localhost:11434")
@@ -84,21 +82,21 @@ prompt = ChatPromptTemplate.from_messages([
     (
         "system",
         """
-You are an expert Deduplication Engine. Your goal is to identify redundant records within a dataset that likely belong to the same individual.
-
-### OPERATIONAL PIPELINE:
-- 1. Vector Representation: Utilize the provided 'generate_embedding_from_excel' tool to generate embeddings for the normalized fields.
-- 2. Similarity Analysis: Calculate the Cosine Similarity between record embeddings.
-- 3. Decision Logic: Rows with high similarity scores across multiple attributes should be flagged as duplicates.
-
-""",
+        You are an expert Deduplication Engine. Your goal is to identify redundant records within a dataset that likely belong to the same individual.
+        ### OPERATIONAL PIPELINE:
+        - 1. Vector Representation: Utilize the provided 'generate_embedding_from_excel' tool to generate embeddings for the normalized fields.
+        - 2. Similarity Analysis: Calculate the Cosine Similarity between record embeddings.
+        - 3. Decision Logic: Rows with high similarity scores across multiple attributes should be flagged as duplicates.
+        """,
     ),
     (
         "human", 
         """
-The following database records have been normalized from an Excel file:{data}
-Please process these records through the vectorization tool. Identify all potential duplicates and output the final deduplicated results in a CSV format.
-"""
+        The following database records have been normalized from an Excel file:{data}
+        Please process these records through the vectorization tool.
+        According to the top k values returned by the embedding tool, eliminate the top 3 information that are most likely to be duplicates.
+        Output the final deduplicated results in a CSV format.
+        """
 ),
 ])
 
