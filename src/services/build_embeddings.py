@@ -1,7 +1,6 @@
-import numpy as np
 from typing import Optional
 
-from src.utils.xlsx_read import read_excel
+from src.utils import read_xlsx
 from src.services.text_builder import row_to_text
 from src.services.embedding_service import EmbeddingGenerator
 from src.services.similarity import topk_similarity
@@ -24,7 +23,7 @@ def build_embeddings(
     """
 
     generator = generator or EmbeddingGenerator()
-    df = read_excel(input_path)  # read data
+    df = read_xlsx(input_path)  # read data
     texts = df.apply(row_to_text, axis=1).tolist()  # transfer to texts
     embeddings = generator.generate_embeddings(texts)  # generate embedding
     df["embedding"] = embeddings
