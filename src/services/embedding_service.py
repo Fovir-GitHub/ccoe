@@ -1,3 +1,4 @@
+import logging
 import torch
 from transformers import AutoTokenizer, AutoModel
 from typing import List
@@ -34,11 +35,16 @@ class EmbeddingGenerator:
         self.dtype = settings.embedding.dtype
         self.device_map = settings.embedding.device
 
+        logging.info(
+            f"initialize embedding generator: backend {self.backend} model_name {self.model_name} dtype {self.dtype} device_map {self.device_map}"
+        )
+
         if self.backend == "huggingface":
             self._init_hf_model()
         elif self.backend == "ollama":
             self._init_ollama_model()
         else:
+            logging.error(f"unsupported backend: {self.backend}")
             raise ValueError(f"[!] Unsupported backend: {self.backend}")
 
     def _init_hf_model(self):
@@ -48,13 +54,18 @@ class EmbeddingGenerator:
         Loads the tokenizer and model from the HuggingFace hub with specified
         dtype and device mapping, and sets the model to evaluation mode.
         """
+        trust_remote_code = settings.embedding.trust_remote_code
+        logging.info(
+            f"initializing HuggingFace model: trust_remote_code {trust_remote_code}"
+        )
+
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name,
-            trust_remote_code=settings.embedding.trust_remote_code,
+            trust_remote_code=trust_remote_code,
         )
         self.model = AutoModel.from_pretrained(
             self.model_name,
-            trust_remote_code=settings.embedding.trust_remote_code,
+            trust_remote_code=trust_remote_code,
             torch_dtype=self.dtype,
             device_map=self.device_map,
         ).eval()
@@ -66,6 +77,7 @@ class EmbeddingGenerator:
 
         Loads the Ollama model from local path and sets device.
         """
+        logging.info("initializing Ollama model...")
         try:
             import ollama
         except ImportError:
@@ -83,10 +95,12 @@ class EmbeddingGenerator:
         :return: The list of embeddings (float) corresponding to each text.
         """
 
+        logging.info(f"start generating embeddings: batch_size {batch_size}")
         embeddings = []
 
         for i in tqdm(range(0, len(texts), batch_size), desc="Generating embeddings"):
             batch = texts[i : i + batch_size]
+            logging.debug(f"generate embeddings: times {i} batch {batch}")
 
             if self.backend == "huggingface":
                 inputs = self.tokenizer(
@@ -100,7 +114,6 @@ class EmbeddingGenerator:
                 # mean pooling of last hidden states to get sentence embeddings
                 batch_embeddings = outputs.last_hidden_state.mean(dim=1)
                 embeddings.extend(batch_embeddings.cpu().tolist())
-
             elif self.backend == "ollama":
                 if not hasattr(self, "ollama"):
                     raise RuntimeError(
