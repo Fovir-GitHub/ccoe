@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     ````
     """
 
+    log_level: str = "INFO"
+    log_file: str = "app.log"
+    log_format: str = "console"
+
     # Agent configuration. Override defaults via `APP_AGENT__*` environment variables.
     agent: AgentSettings = AgentSettings()
 
