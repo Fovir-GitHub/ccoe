@@ -47,4 +47,4 @@ def load_embeddings(data: dict) -> dict:
     )  # this row for testing!!! If can run, just deletee this row and modify sample as df
     result = {"data": sample.to_markdown()}
     logging.debug(f"load_embeddings result: {result}")
-    return {"data": sample.to_markdown()}
+    return result
