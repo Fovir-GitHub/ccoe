@@ -8,7 +8,7 @@ def normalize(path: str) -> dict:
     logging.debug("normalize begin")
 
     df = read_xlsx(path)
-    df = df.drop(columns=["NO", "No", "Reg Date", "Exception"])
+    df = df.drop(columns=["NO", "No", "Reg Date", "Exception"], errors="ignore")
     df = normalization(df)
 
     # store data temporarily so the @tool can read it by path
