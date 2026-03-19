@@ -1,9 +1,18 @@
 import pandas as pd
 
 from src.ccoe_ai.services.build_embeddings import build_embeddings
+from src.ccoe_ai.utils.xlsx import read_xlsx
+from src.ccoe_ai.normalization.normalization import normalization
 
 input_path = "data/dummy.xlsx"
 output_path = "data/dummy.parquet"
+
+df_init = read_xlsx(input_path)
+df_clean = normalization(df_init)
+# transfer all non-embedding columns -> str
+for col in df_clean.columns:
+    df_clean[col] = df_clean[col].astype(str)
+df_clean.to_excel(input_path, index=False)
 
 build_embeddings(input_path, output_path)
 
