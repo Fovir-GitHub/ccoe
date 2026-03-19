@@ -17,7 +17,7 @@ from src.ccoe_ai.tools.embedding_tool import generate_embedding_from_excel
 load_dotenv()
 # OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# paths to exceel (dummy data)
+# paths to excel (dummy data)
 directory = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 excel_path = os.path.join(directory, "data/dummy.xlsx")
 
@@ -93,31 +93,43 @@ def invoke_embedding_agent(data: dict) -> dict:
 # 3. load embeddings
 def load_embeddings(data: dict) -> dict:
     df = pd.read_parquet(data["parquet_path"])
-    sample = df.drop(
-        columns=["embedding"], errors="ignore"
-    )  # this row for testing!!! If can run, just deletee this row and modify sample as df
-    return {"data": sample.to_markdown()}
 
+    # Completely remove unnecessary columns to prevent excessive data weight from causing LLM encoding issues.
+    name_col = 'Full Name' if 'Full Name' in df.columns else df.columns[0]
+    email_col = 'Email' if 'Email' in df.columns else df.columns[1]
+
+    # Handle illegal line breaks to prevent CSV misalignment.
+    clean_df = df.dropna(subset=[name_col, email_col], how='all')
+
+    cols_to_drop = ["embedding", "vector", "combined_text", "similarity_score"]
+    clean_df = clean_df.drop(columns=[c for c in cols_to_drop if c in clean_df.columns], errors="ignore")
+
+    clean_df = clean_df.replace(r'[\n\r]', ' ', regex=True)
+
+    target_dir = "data"
+    os.makedirs(target_dir, exist_ok=True)
+    final_path = os.path.join(target_dir, "deduplicated_final.xlsx")
+
+    clean_df.to_excel(final_path, index=False, engine='openpyxl')
+
+    print(f"\n[+] Cleaned data size: {len(clean_df)} rows")
+    print(f"[+] Original data saved to: {final_path}")
+
+    # Only show the first 50 lines to the LLM for auditing to prevent garbled characters from appearing in the response due to excessive length.
+    return {"data": clean_df.head(50).to_markdown()}
 
 # 4. design prompt
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """
-        You are an expert Deduplication Auditor. 
-        The dataset provided below has ALREADY been processed through a Vector Embedding and Similarity Pipeline.
-        Your task is NOT to run tools, but to ANALYZE the results provided in the text and give a final deduplication report.
-        """,
+            "You are an expert Deduplication Auditor. Analyze the data sample and provide an audit summary. "
+            "Do NOT output the full dataset as it is already saved to a file."
         ),
         (
             "human",
-            """
-        Here are the records that were extracted after similarity filtering:
-        {data}
-
-        Based on these records, please identify the top 3 most likely duplicate sets and output the final deduplicated result in CSV format.
-        """,
+            "Here is a sample of the deduplicated records:\n{data}\n\n"
+            "Please provide an audit report including the top 3 potential duplicate sets identified."
         ),
     ]
 )
