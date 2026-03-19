@@ -26,6 +26,8 @@ print("\n---Data Preview(first 5 lines)---\n")
 preview_df = df_read.copy()
 
 if 'embedding' in preview_df.columns:
-    preview_df['embedding'] = preview_df['embedding'].apply(lambda x: x[:3] + ["..."])
+    preview_df['embedding'] = preview_df['embedding'].apply(
+        lambda x: (x.tolist()[:3] if hasattr(x, "tolist") else x[:3]) + ["..."]
+    )
 
 print(preview_df.head())
