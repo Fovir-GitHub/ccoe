@@ -3,18 +3,24 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from src.ccoe_ai.config import settings
 from src.ccoe_ai.tools import TOOL_LIST
-import logging
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 def init_llm() -> BaseChatModel:
-    logging.info(f"init_llm called")
+    logger.info("init_llm_called")
 
     llm: BaseChatModel
     temperature = settings.agent.temperature
     provider = settings.agent.provider
     model = settings.agent.model
 
-    logging.info(f"loading LLM: provider {provider} model {model}")
+    logger.info(
+        "loading_llm",
+        provider=provider,
+        model=model,
+    )
 
     match (provider):
         case "ollama":

@@ -81,6 +81,7 @@ scipy==1.17.1
 setuptools==82.0.1
 shellingham==1.5.4
 six==1.17.0
+structlog==25.5.0
 sympy==1.14.0
 tabulate==0.10.0
 tenacity==9.1.4

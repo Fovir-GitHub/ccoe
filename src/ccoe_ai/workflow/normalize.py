@@ -1,11 +1,16 @@
-import logging
+import structlog
 from src.ccoe_ai.normalization import normalization
 from src.ccoe_ai.utils import read_xlsx
 import tempfile
 
+logger = structlog.get_logger(__name__)
+
 
 def normalize(path: str) -> dict:
-    logging.debug("normalize begin")
+    logger.debug(
+        "normalize_start",
+        input_path=path,
+    )
 
     df = read_xlsx(path)
     df = df.drop(columns=["NO", "No", "Reg Date", "Exception"], errors="ignore")
@@ -15,7 +20,11 @@ def normalize(path: str) -> dict:
     tmp_xlsx = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
     tmp_parquet = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
 
-    logging.info(f"normalize: tmp_xlsx {tmp_xlsx} tmp_parquet {tmp_parquet}")
+    logger.info(
+        "normalize_temp_files_created",
+        tmp_xlsx=tmp_xlsx.name,
+        tmp_parquet=tmp_parquet.name,
+    )
 
     tmp_xlsx.close()
     tmp_parquet.close()

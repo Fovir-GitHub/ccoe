@@ -1,4 +1,7 @@
-import logging
+import structlog
+import phonenumbers
+
+logger = structlog.get_logger(__name__)
 
 
 def normalize_phone(number: str | None, country: str | None) -> str:
@@ -18,31 +21,54 @@ def normalize_phone(number: str | None, country: str | None) -> str:
         A normalized phone number in E.164 format.
         If the input is empty or invalid, returns `INVALID_NUMBER`.
     """
-
-    import phonenumbers
-
     INVALID_NUMBER = "N/A"
 
     if number is None or country is None:
-        logging.error("normalize phone number: empty number or country")
+        logger.error(
+            "normalize_phone_missing_input",
+            number=number,
+            country=country,
+        )
         return INVALID_NUMBER
 
     if number == "nan" or country == "nan":
-        logging.error(
-            "normalize phone number failed: number=%s country=%s", number, country
+        logger.error(
+            "normalize_phone_failed",
+            number=number,
+            country=country,
+            reason="nan_value",
         )
         return INVALID_NUMBER
 
     try:
-        logging.debug("normalize phone number number=%s country=%s", number, country)
+        logger.debug(
+            "normalize_phone_start",
+            number=number,
+            country=country,
+        )
         parsed = phonenumbers.parse(number, country)
         if not phonenumbers.is_valid_number(parsed):
-            logging.error("invalid number number=%s", parsed)
+            logger.error(
+                "normalize_phone_invalid_number",
+                number=number,
+                country=country,
+                parsed_number=str(parsed),
+            )
             return INVALID_NUMBER
 
         result = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
-        logging.debug("normalize phone number number=%s result=%s", number, result)
+        logger.debug(
+            "normalize_phone_success",
+            number=number,
+            country=country,
+            result=result,
+        )
         return result
-    except phonenumbers.NumberParseException:
-        logging.error("parse number failed number=%s country=%s", number, country)
+    except phonenumbers.NumberParseException as e:
+        logger.error(
+            "normalize_phone_parse_error",
+            number=number,
+            country=country,
+            error=str(e),
+        )
         return INVALID_NUMBER
