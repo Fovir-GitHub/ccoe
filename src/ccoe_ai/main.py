@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from src.ccoe_ai.utils import init_logger
 from src.ccoe_ai.workflow import get_chain
 import structlog
