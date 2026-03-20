@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from langchain_core.runnables import RunnableLambda, RunnableSerializable
 from .embedding import invoke_embedding_agent, load_embeddings
 from .llm import llm_with_tools, prompt
