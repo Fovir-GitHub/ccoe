@@ -51,22 +51,13 @@ prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """
-        You are an expert Deduplication Engine. Your goal is to identify redundant records within a dataset that likely belong to the same individual.
-        ### OPERATIONAL PIPELINE:
-        - 1. Vector Representation: Utilize the provided 'generate_embedding_from_excel' tool to generate embeddings for the normalized fields.
-        - 2. Similarity Analysis: Calculate the Cosine Similarity between record embeddings.
-        - 3. Decision Logic: Rows with high similarity scores across multiple attributes should be flagged as duplicates.
-        """,
+            "You are an expert Deduplication Auditor. Analyze the data sample and provide an audit summary. "
+            "Do NOT output the full dataset as it is already saved to a file.",
         ),
         (
             "human",
-            """
-        The following database records have been normalized from an Excel file:{data}
-        Please process these records through the vectorization tool.
-        According to the top k values returned by the embedding tool, eliminate the top 3 information that are most likely to be duplicates.
-        Output the final deduplicated results in a CSV format.
-        """,
+            "Here is a sample of the deduplicated records:\n{data}\n\n"
+            "Please provide an audit report including the top 3 potential duplicate sets identified.",
         ),
     ]
 )
