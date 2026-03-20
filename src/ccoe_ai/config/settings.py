@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from src.ccoe_ai.config.agent import AgentSettings
 from .embedding import EmbeddingSettings
 
 
@@ -18,7 +20,14 @@ class Settings(BaseSettings):
     ````
     """
 
-    # Embedder configuration. Override defaults via APP_EMBEDDING__* environment variables.
+    log_level: str = "INFO"
+    log_file: str = "app.log"
+    log_format: str = "console"
+
+    # Agent configuration. Override defaults via `APP_AGENT__*` environment variables.
+    agent: AgentSettings = AgentSettings()
+
+    # Embedder configuration. Override defaults via `APP_EMBEDDING__*` environment variables.
     embedding: EmbeddingSettings = EmbeddingSettings()
 
     # Pydantic Settings configuration.
