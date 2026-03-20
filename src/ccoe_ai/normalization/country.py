@@ -1,4 +1,7 @@
-import logging
+import structlog
+import pycountry
+
+logger = structlog.get_logger(__name__)
 
 
 def normalize_country(country: str) -> str:
@@ -23,9 +26,6 @@ def normalize_country(country: str) -> str:
     >>> normalize_country("")
     "MY"
     """
-
-    import pycountry
-
     DEFAULT_COUNTRY = "MY"
 
     # Empty or invalid country code.
@@ -36,20 +36,29 @@ def normalize_country(country: str) -> str:
         or len(country.strip()) != 2
         or pycountry.countries.get(alpha_2=country.upper()) is None
     ):
-        logging.warning(
-            "normalize country: invalid country code %s, set to default country %s",
-            country,
-            DEFAULT_COUNTRY,
+        logger.warning(
+            "normalize_country_invalid",
+            input_country=country,
+            default_country=DEFAULT_COUNTRY,
+            reason="invalid_input",
+            action="set to default country",
         )
         return DEFAULT_COUNTRY
 
     try:
         result = pycountry.countries.lookup(country)
+        logger.debug(
+            "normalize_country_success",
+            input_country=country,
+            result_country=result.alpha_2,
+        )
         return result.alpha_2
     except LookupError:
-        logging.warning(
-            "normalize country: invalid country code %s, set to default country %s",
-            country,
-            DEFAULT_COUNTRY,
+        logger.warning(
+            "normalize_country_lookup_failed",
+            input_country=country,
+            default_country=DEFAULT_COUNTRY,
+            reason="lookup_error",
+            action="set to default country",
         )
         return DEFAULT_COUNTRY

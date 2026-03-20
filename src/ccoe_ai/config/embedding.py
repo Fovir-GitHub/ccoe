@@ -7,10 +7,8 @@ class EmbeddingSettings(BaseModel):
     Pydantic model for configuring embedding provider.
     """
 
-    backend: str = "huggingface"  # Which backend to use: "huggingface" or "ollama"
-    model_name: str = (
-        "maidalun1020/bce-embedding-base_v1"  # Default HuggingFace model id
-    )
+    backend: str = "huggingface"  # Optional: "huggingface", "ollama"
+    model_name: str = "maidalun1020/bce-embedding-base_v1"  # Model name
     dtype: str = "float16"  # Torch dtype as string; will be converted to torch.dtype
     device: str = "auto"  # Compute device; "auto" selects CUDA if available
     trust_remote_code: bool = (

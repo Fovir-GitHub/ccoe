@@ -45,7 +45,9 @@ def build_embeddings(
 
     keep_idx = filter_similar(embeddings, threshold=threshold)
     df = df.iloc[keep_idx].reset_index(drop=True)
-    print(f"Kept {len(df)} out of {len(texts)} rows after filtering by threshold {threshold}")
+    print(
+        f"Kept {len(df)} out of {len(texts)} rows after filtering by threshold {threshold}"
+    )
 
     df.to_parquet(output_path, index=False)
     print(f"Saved deduplicated embeddings to {output_path}")

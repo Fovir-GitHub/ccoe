@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
+
 def filter_similar(embeddings, threshold=0.9):
     """
     Remove embeddings that are too similar to each other based on cosine similarity.

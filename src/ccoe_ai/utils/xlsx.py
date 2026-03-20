@@ -20,11 +20,7 @@ def read_xlsx(path: str) -> pd.DataFrame:
         The Excel data with cleaned column names.
     """
 
-    df = pd.read_excel(
-        path,
-        usecols=lambda col: isinstance(col, str) and "Unnamed" not in col,
-    )
-
+    df = pd.read_excel(path)
     df.columns = df.columns.str.strip()
 
     return df

@@ -1,9 +1,11 @@
-import logging
+import structlog
 import torch
 from transformers import AutoTokenizer, AutoModel
 from typing import List
 from tqdm import tqdm
 from src.ccoe_ai.config import settings
+
+logger = structlog.get_logger(__name__)
 
 
 class EmbeddingGenerator:
@@ -35,8 +37,12 @@ class EmbeddingGenerator:
         self.dtype = settings.embedding.dtype
         self.device_map = settings.embedding.device
 
-        logging.info(
-            f"initialize embedding generator: backend {self.backend} model_name {self.model_name} dtype {self.dtype} device_map {self.device_map}"
+        logger.info(
+            "embedding_generator_init",
+            backend=self.backend,
+            model_name=self.model_name,
+            dtype=str(self.dtype),
+            device_map=self.device_map,
         )
 
         if self.backend == "huggingface":
@@ -44,7 +50,7 @@ class EmbeddingGenerator:
         elif self.backend == "ollama":
             self._init_ollama_model()
         else:
-            logging.error(f"unsupported backend: {self.backend}")
+            logger.error("unsupported_backend", backend=self.backend)
             raise ValueError(f"[!] Unsupported backend: {self.backend}")
 
     def _init_hf_model(self):
@@ -55,8 +61,9 @@ class EmbeddingGenerator:
         dtype and device mapping, and sets the model to evaluation mode.
         """
         trust_remote_code = settings.embedding.trust_remote_code
-        logging.info(
-            f"initializing HuggingFace model: trust_remote_code {trust_remote_code}"
+        logger.info(
+            "hf_model_init_start",
+            trust_remote_code=trust_remote_code,
         )
 
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -70,6 +77,10 @@ class EmbeddingGenerator:
             device_map=self.device_map,
         ).eval()
         self.device = next(self.model.parameters()).device
+        logger.info(
+            "hf_model_init_complete",
+            device=str(self.device),
+        )
 
     def _init_ollama_model(self):
         """
@@ -77,7 +88,7 @@ class EmbeddingGenerator:
 
         Loads the Ollama model from local path and sets device.
         """
-        logging.info("initializing Ollama model...")
+        logger.info("ollama_model_init_start")
         try:
             import ollama
         except ImportError:
@@ -85,6 +96,7 @@ class EmbeddingGenerator:
 
         self.ollama = ollama
         self.device = "cpu"
+        logger.info("ollama_model_init_complete")
 
     def generate_embeddings(self, texts: List[str], batch_size=16) -> List[List[float]]:
         """
@@ -95,12 +107,19 @@ class EmbeddingGenerator:
         :return: The list of embeddings (float) corresponding to each text.
         """
 
-        logging.info(f"start generating embeddings: batch_size {batch_size}")
+        logger.info(
+            "embedding_generation_start", batch_size=batch_size, total_texts=len(texts)
+        )
         embeddings = []
 
-        for i in tqdm(range(0, len(texts), batch_size), desc="Generating embeddings"):
+        for i in tqdm(
+            range(0, len(texts), batch_size),
+            desc="Generating embeddings",
+        ):
             batch = texts[i : i + batch_size]
-            logging.debug(f"generate embeddings: times {i} batch {batch}")
+            logger.debug(
+                "embedding_batch_process", batch_index=i, batch_size=len(batch)
+            )
 
             if self.backend == "huggingface":
                 inputs = self.tokenizer(
@@ -127,4 +146,5 @@ class EmbeddingGenerator:
                 batch_embeddings = response.get("embeddings", [])
                 embeddings.extend(batch_embeddings)
 
+        logger.info("embedding_generation_complete", total_embeddings=len(embeddings))
         return embeddings
