@@ -11,7 +11,7 @@ def build_embeddings(
     input_path: str,
     output_path: str,
     generator: Optional[EmbeddingGenerator] = None,
-    threshold: float = 0.92,
+    threshold: float = 0.99,
 ) -> str:
     """
     Generate embeddings from an Excel (.xlsx) file, remove highly similar rows,
