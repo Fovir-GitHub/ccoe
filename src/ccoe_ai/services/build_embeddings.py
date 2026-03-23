@@ -5,13 +5,14 @@ from src.ccoe_ai.utils import read_xlsx
 from src.ccoe_ai.services.text_builder import row_to_text
 from src.ccoe_ai.services.embedding_service import EmbeddingGenerator
 from src.ccoe_ai.services.similarity import filter_similar
+from src.ccoe_ai.config import settings
 
 
 def build_embeddings(
     input_path: str,
     output_path: str,
     generator: Optional[EmbeddingGenerator] = None,
-    threshold: float = 0.92,
+    threshold: float = settings.embedding.threshold,
 ) -> str:
     """
     Generate embeddings from an Excel (.xlsx) file, remove highly similar rows,
