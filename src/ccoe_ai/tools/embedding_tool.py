@@ -1,5 +1,6 @@
 from langchain.tools import tool
 
+from src.ccoe_ai.config import settings
 from src.ccoe_ai.services import build_embeddings
 
 
@@ -7,7 +8,7 @@ from src.ccoe_ai.services import build_embeddings
 def generate_embedding_from_excel(
     input_path: str,
     output_path: str,
-    threshold: float = 0.99,
+    threshold: float = settings.embedding.threshold,
 ):
     """
     Generate embeddings from an Excel file.
