@@ -14,12 +14,10 @@
       # Add packages here.
       buildInputs = with pkgs; [
         python313
-        (pkgs.python3.withPackages (python-pkgs:
-          with python-pkgs; [
-            # Python packages:
-            pip
-          ]))
+        stdenv.cc.cc.lib
+        zlib
       ];
+      LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.zlib}/lib";
 
       # Shell hooks.
       shellHook = ''
