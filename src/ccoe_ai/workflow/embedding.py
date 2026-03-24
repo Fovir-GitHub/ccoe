@@ -34,24 +34,6 @@ def invoke_embedding_agent(data: dict) -> dict:
 
     parquet_path = output_path  # fallback
 
-    # execute the tool calls emitted by the LLM agent
-    # for tool_call in ai_message.tool_calls:
-    #     tool_name = tool_call["name"]
-    #     tool_args = tool_call["args"]
-    #     logger.debug(
-    #         "tool_call_received",
-    #         tool_name=tool_name,
-    #         tool_args=tool_args,
-    #     )
-    #
-    #     if tool_name == generate_embedding_from_excel.name:
-    #         logger.info(
-    #             "calling_embedding_tool",
-    #             tool_name=tool_name,
-    #         )
-    #         result = generate_embedding_from_excel.invoke(tool_args)
-    #         parquet_path = result
-
     if not ai_message.tool_calls:
         logger.warning("LLM didn't use the tool. Manually invoke tools.")
         generate_embedding_from_excel.invoke(
