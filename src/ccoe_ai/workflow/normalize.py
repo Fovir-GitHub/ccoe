@@ -6,13 +6,16 @@ import tempfile
 logger = structlog.get_logger(__name__)
 
 
-def normalize(path: str) -> dict:
+def normalize(paths: dict) -> dict:
+    input_path = paths["input_path"]
+    result_path = paths["result_path"]
+
     logger.debug(
         "normalize_start",
-        input_path=path,
+        input_path=input_path,
     )
 
-    df = read_xlsx(path)
+    df = read_xlsx(input_path)
     df = df.drop(columns=["NO", "No", "Reg Date", "Exception"], errors="ignore")
     df = normalization(df)
 
@@ -33,4 +36,5 @@ def normalize(path: str) -> dict:
     return {
         "normalized_path": tmp_xlsx.name,
         "output_path": tmp_parquet.name,
+        "result_path": result_path,
     }
