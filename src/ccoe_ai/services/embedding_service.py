@@ -33,7 +33,7 @@ class EmbeddingGenerator:
                 Defaults to MODEL_CONFIG["embedding_model"].
         """
         self.backend = settings.embedding.backend
-        self.model_name = settings.embedding.model_name
+        self.model_name = settings.embedding.model
         self.dtype = settings.embedding.dtype
         self.device_map = settings.embedding.device
 
