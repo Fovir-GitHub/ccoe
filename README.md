@@ -76,10 +76,10 @@ APP_EMBEDDING__MODEL_NAME=nomic-embed-text
 
 ## Run the Pipeline
 
-Use the following command to run the pipeline, replacing `/path/to/data.xlsx` with the actual path to your input `.xlsx` file:
+Use the following command to run the pipeline, replacing `/path/to/data.xlsx` and `/path/to/result.xlsx` with the actual path to your input or output `.xlsx` file:
 
 ```bash
-python -m src.ccoe_ai.main /path/to/data.xlsx
+python -m src.ccoe_ai.main /path/to/data.xlsx /path/to/result.xlsx
 ```
 
 ## Project Structure

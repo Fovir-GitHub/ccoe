@@ -8,13 +8,13 @@ class EmbeddingSettings(BaseModel):
     """
 
     backend: str = "huggingface"  # Optional: "huggingface", "ollama"
-    model_name: str = "maidalun1020/bce-embedding-base_v1"  # Model name
+    model: str = "maidalun1020/bce-embedding-base_v1"  # Model name
     dtype: str = "float16"  # Torch dtype as string; will be converted to torch.dtype
     device: str = "auto"  # Compute device; "auto" selects CUDA if available
     trust_remote_code: bool = (
         True  # Allow loading of remote model code (dangerous if untrusted)
     )
-    threshold: float = 0.99 # Threshold of embedding tools.
+    threshold: float = 0.99  # Threshold of embedding tools.
 
     @field_validator("dtype", mode="after")
     def convert_dtype(cls, v):

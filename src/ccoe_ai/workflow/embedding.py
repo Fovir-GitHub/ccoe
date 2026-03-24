@@ -11,6 +11,7 @@ logger = structlog.get_logger(__name__)
 def invoke_embedding_agent(data: dict) -> dict:
     normalized_path = data["normalized_path"]
     output_path = data["output_path"]
+    result_path = data["result_path"]
     logger.info(
         "invoke_embedding_agent",
         normalized_path=normalized_path,
@@ -34,24 +35,6 @@ def invoke_embedding_agent(data: dict) -> dict:
 
     parquet_path = output_path  # fallback
 
-    # execute the tool calls emitted by the LLM agent
-    # for tool_call in ai_message.tool_calls:
-    #     tool_name = tool_call["name"]
-    #     tool_args = tool_call["args"]
-    #     logger.debug(
-    #         "tool_call_received",
-    #         tool_name=tool_name,
-    #         tool_args=tool_args,
-    #     )
-    #
-    #     if tool_name == generate_embedding_from_excel.name:
-    #         logger.info(
-    #             "calling_embedding_tool",
-    #             tool_name=tool_name,
-    #         )
-    #         result = generate_embedding_from_excel.invoke(tool_args)
-    #         parquet_path = result
-
     if not ai_message.tool_calls:
         logger.warning("LLM didn't use the tool. Manually invoke tools.")
         generate_embedding_from_excel.invoke(
@@ -71,11 +54,15 @@ def invoke_embedding_agent(data: dict) -> dict:
                 tool_args=tool_args,
             )
             generate_embedding_from_excel.invoke(tool_call["args"])
-    return {"parquet_path": parquet_path}
+    return {
+        "parquet_path": parquet_path,
+        "result_path": result_path,
+    }
 
 
 def load_embeddings(data: dict) -> dict:
     logger.debug("load_embedding_start")
+    result_path = data["result_path"]
     df = pd.read_parquet(data["parquet_path"])
 
     # Completely remove unnecessary columns to prevent excessive data weight from causing LLM encoding issues.
@@ -92,16 +79,12 @@ def load_embeddings(data: dict) -> dict:
 
     clean_df = clean_df.replace(r"[\n\r]", " ", regex=True)
 
-    target_dir = "data"
-    os.makedirs(target_dir, exist_ok=True)
-    final_path = os.path.join(target_dir, "deduplicated_final.xlsx")
-
-    clean_df.to_excel(final_path, index=False, engine="openpyxl")
+    clean_df.to_excel(result_path, index=False, engine="openpyxl")
 
     logger.info(
         "load_embeddings_end",
         cleaned_data_row=len(clean_df),
-        output_path=final_path,
+        result_path=result_path,
     )
 
     # Only show the first 50 lines to the LLM for auditing to prevent garbled characters from appearing in the response due to excessive length.
