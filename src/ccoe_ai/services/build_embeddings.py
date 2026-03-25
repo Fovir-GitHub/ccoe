@@ -30,10 +30,19 @@ def build_embeddings(
 
     # define and filter the columns required
     required_columns = [
-        'Full Name', 'Email', 'Company', 'Job Title', 'Country',
-        'Phone', 'Course', 'Gender', 'Sector', "Supervisor's Name",
-        "Supervisor's Email", 'IT/Cybersecurity bckgrd (Yes/No)',
-        'IT/Cybersecurity work exp (yrs)'
+        "Full Name",
+        "Email",
+        "Company",
+        "Job Title",
+        "Country",
+        "Phone",
+        "Course",
+        "Gender",
+        "Sector",
+        "Supervisor's Name",
+        "Supervisor's Email",
+        "IT/Cybersecurity bckgrd (Yes/No)",
+        "IT/Cybersecurity work exp (yrs)",
     ]
     existing_cols = [c for c in required_columns if c in df.columns]
     df = df[existing_cols].copy()
