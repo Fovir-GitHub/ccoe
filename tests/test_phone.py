@@ -5,6 +5,7 @@ from src.ccoe_ai.normalization.phone import normalize_phone
 class TestNormalizePhone(unittest.TestCase):
     def test_valid_number(self):
         self.assertEqual(normalize_phone("0123456789", "MY"), "+60123456789")
+        self.assertEqual(normalize_phone("115544332", "MY"), "+60115544332")
         self.assertEqual(normalize_phone("12-3456789", "MY"), "+60123456789")
         self.assertEqual(normalize_phone("+60123456789", "MY"), "+60123456789")
         self.assertEqual(normalize_phone("+6012 3456789", "MY"), "+60123456789")
