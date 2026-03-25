@@ -47,7 +47,7 @@ def normalize_phone(number: str | None, country: str | None) -> str:
             country=country,
         )
         parsed = phonenumbers.parse(number, country)
-        if not phonenumbers.is_valid_number(parsed):
+        if not phonenumbers.is_possible_number(parsed):
             logger.error(
                 "normalize_phone_invalid_number",
                 number=number,
