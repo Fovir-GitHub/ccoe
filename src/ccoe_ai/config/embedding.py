@@ -14,7 +14,7 @@ class EmbeddingSettings(BaseModel):
     trust_remote_code: bool = (
         True  # Allow loading of remote model code (dangerous if untrusted)
     )
-    threshold: float = 0.99 # Threshold of embedding tools.
+    threshold: float = 0.90 # Threshold of embedding tools.
 
     @field_validator("dtype", mode="after")
     def convert_dtype(cls, v):
