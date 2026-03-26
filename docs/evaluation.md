@@ -33,31 +33,31 @@ Finally, the script computes **Precision** and **Recall**, reporting the total c
 
 ![Evaluation Result](./img/evaluation-result.png)
 
-Since the threshold below 0.98 shows a linear increase, we evaluate the threshold between 0.98 and 0.99, while the threshold above 0.99 shows a linear decrease. Therefore, we initially speculate that the optimal threshold is between 0.98 and 0.99. Based on experimental results at different thresholds, the deduplication agent exhibits a typical trade-off between Precision and Recall, with an overall stable upward trend.
+Since the threshold increases from 0.85 to 0.95, both precision and recall first show a clear upward trend and then decline after reaching a peak. Therefore, we initially speculate that the optimal threshold is around 0.90. Based on experimental results at different thresholds, the deduplication agent exhibits a typical trade-off between Precision and Recall, with performance peaking at mid-range thresholds rather than continuously improving.
 
-The graph shows that precision increases steadily with the threshold, from 0.44 at 0.980 to 0.83 at 0.990. This indicates that the model significantly reduces false positives (FP) at higher thresholds, making more conservative and accurate judgments. Recall also increases with the threshold, from 0.61 to 0.92, demonstrating that the model's ability to identify duplicate data improves simultaneously, reducing false negatives (FN).
+The graph shows that precision increases steadily with the threshold, from 0.44 at 0.85 to 0.83 at 0.90, and then declines to 0.50 at 0.95. This indicates that the model reduces false positives (FP) as the threshold increases up to a certain point, but becomes overly strict at higher thresholds. Recall follows a similar pattern, increasing from 0.61 at 0.85 to 0.92 at 0.90, before decreasing to 0.64 at 0.95, demonstrating that the model’s ability to identify duplicate data improves initially but deteriorates when the threshold becomes too high, increasing false negatives (FN).
 
-Based on experimental data, the overall model performance improved significantly, with precision and recall showing a synchronous upward trend. This phenomenon indicates that the current feature engineering design and similarity measurement function are effective in distinguishing target samples and have not yet reached a performance saturation bottleneck, reflecting the model's potential for further optimization.
+Based on experimental data, the overall model performance improves significantly up to the threshold of 0.90, where both precision and recall reach their peak. Beyond this point, both metrics decline, indicating that the model begins to lose balance between identifying duplicates and avoiding incorrect matches.
 
 ### Optimal Threshold Range
 
-In threshold sensitivity analysis, [0.985, 0.988] was determined to be the optimal value range. Specific performance balance is as follows:
+In threshold sensitivity analysis, [0.88, 0.92] was determined to be the optimal value range. Specific performance balance is as follows:
 
 - **Equilibrium Point Analysis:**
 
-  When the threshold is set to 0.985, P ≈ 0.63 and R ≈ 0.78, achieving a preliminary balance between the two metrics.
+  When the threshold is set to 0.88, P ≈ 0.63 and R ≈ 0.78, achieving a reasonable balance between the two metrics.
 
 - **High Recall Tendency:**
 
-  As the threshold increases to 0.988, precision increases to 0.74, and recall increases synchronously to 0.89. This configuration is suitable for business scenarios with low tolerance for missed detections.
+  As the threshold increases to 0.92, precision is around 0.74, and recall remains relatively high at around 0.89. This configuration is suitable for business scenarios with low tolerance for missed detections.
 
 - **Peak Performance and Risk Warning:**
 
-  When the threshold was further increased to 0.990, the model achieved optimal statistical performance (P ≈ 0.83, R ≈ 0.92). However, it is crucial to be aware of the risk of semantic overfitting that may result from excessively high thresholds, i.e., the model might over-capture subtle similarities, thus mistakenly clustering and merging non-repeating entities. Manual verification showed that this risk did not occur at 0.990. Above the threshold of 0.990, an increased false negative rate was observed.
+  When the threshold reaches 0.90, the model achieves optimal statistical performance (P ≈ 0.83, R ≈ 0.92). However, further increasing the threshold leads to a decline in both precision and recall, indicating that excessively high thresholds may cause the model to miss true duplicates due to over-strict similarity requirements.
 
 ### Conclusions and Improvement Suggestions
 
-The current deduplication agent exhibits stable and consistent performance growth during threshold increases, indicating that the current deduplication strategy is effective.
+The current deduplication agent exhibits a clear performance peak around the mid-range threshold, indicating that the current deduplication strategy is effective but sensitive to threshold selection.
 
 ### Limitations of Test Data
 
