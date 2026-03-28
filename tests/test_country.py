@@ -16,6 +16,8 @@ class TestNormalizeCountry(unittest.TestCase):
         self.assertEqual(normalize_country("Taiwan, Province of China"), "TW")
         self.assertEqual(normalize_country("Taiwan, Province   of   China"), "TW")
         self.assertEqual(normalize_country("Taiwan"), "TW")
+        self.assertEqual(normalize_country("UK"), "GB")
+        self.assertEqual(normalize_country("America"), "US")
 
     def test_invalid_country(self):
         DEFAULT_COUNTRY = "MY"

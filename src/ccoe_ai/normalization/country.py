@@ -28,10 +28,23 @@ def normalize_country(country: str) -> str:
     "MY"
     """
     DEFAULT_COUNTRY = "MY"
+    ALIASES: dict = {
+        "uk": "GB",
+        "u.k.": "GB",
+        "england": "GB",
+        "scotland": "GB",
+        "usa": "US",
+        "u.s.": "US",
+        "america": "US",
+    }
 
     # Strip the string and merge internal spaces into one space.
     country = country.strip()
     country = re.sub(r"\s+", " ", country)
+
+    country_lower = country.lower()
+    if country_lower in ALIASES:
+        country = ALIASES[country_lower]
 
     # Empty or invalid country code.
     if not country or country == "" or country.lower() in {"nan", "none"}:
