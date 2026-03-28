@@ -18,15 +18,15 @@ build_embeddings(input_path, output_path)
 
 df_read = pd.read_parquet(output_path)
 
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print(f"[+] Eventually total lines is {len(df_read)}")
 print(f"[+] Data column name: {df_read.columns.tolist()}")
 
 print("\n---Data Preview(first 5 lines)---\n")
 preview_df = df_read.copy()
 
-if 'embedding' in preview_df.columns:
-    preview_df['embedding'] = preview_df['embedding'].apply(
+if "embedding" in preview_df.columns:
+    preview_df["embedding"] = preview_df["embedding"].apply(
         lambda x: (x.tolist()[:3] if hasattr(x, "tolist") else x[:3]) + ["..."]
     )
 

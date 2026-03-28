@@ -1,3 +1,4 @@
+import re
 import structlog
 import pycountry
 
@@ -16,7 +17,7 @@ def normalize_country(country: str) -> str:
     Returns
     -------
     str
-        A normalized two-letter country code (e.g., "MY", "SG").
+        A country code or a country name (e.g., "MY", "SG", "Singapore").
         If the input is empty or invalid, returns `DEFAULT_COUNTRY`.
 
     Examples
@@ -27,15 +28,26 @@ def normalize_country(country: str) -> str:
     "MY"
     """
     DEFAULT_COUNTRY = "MY"
+    ALIASES: dict = {
+        "uk": "GB",
+        "u.k.": "GB",
+        "england": "GB",
+        "scotland": "GB",
+        "usa": "US",
+        "u.s.": "US",
+        "america": "US",
+    }
+
+    # Strip the string and merge internal spaces into one space.
+    country = country.strip()
+    country = re.sub(r"\s+", " ", country)
+
+    country_lower = country.lower()
+    if country_lower in ALIASES:
+        country = ALIASES[country_lower]
 
     # Empty or invalid country code.
-    if (
-        not country
-        or country.strip() == ""
-        or country.strip().lower() in {"nan", "none"}
-        or len(country.strip()) != 2
-        or pycountry.countries.get(alpha_2=country.upper()) is None
-    ):
+    if not country or country == "" or country.lower() in {"nan", "none"}:
         logger.warning(
             "normalize_country_invalid",
             input_country=country,
